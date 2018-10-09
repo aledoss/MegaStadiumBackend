@@ -3,13 +3,23 @@
 class MegaStadiumModel extends CI_Model {
 
 	public function getTimes($dateInMillis){
-
 		$times = $this->getTimesJson();
 
 		if(is_null($times) || empty($times)){
 			return array('status' => 404,'message' => 'No se pudieron obtener los horarios');
 		}else{
 			return array('status' => 200,'message' => 'Horarios obtenidos correctamente', 'response' => $times);
+		}
+	}
+
+	public function getCourts(){
+		//$courts = $this->db->query("SELECT * from TipoCancha")->result_array();
+		$courts = $this->getCourtsJson();
+
+		if(is_null($courts) || empty($courts)){
+			return array('status' => 404,'message' => 'No se pudieron obtener las canchas');
+		}else{
+			return array('status' => 200,'message' => 'Canchas obtenidos correctamente', 'response' => $courts);
 		}
 	}
 
@@ -24,6 +34,7 @@ class MegaStadiumModel extends CI_Model {
 	}
 
 	public function getContacts(){
+		//$contacts = $this->db->query("SELECT * from Contacto")->result_array();
 		$contacts = $this->getContactsJson();
 
 		if(is_null($contacts) || empty($contacts)){
@@ -32,6 +43,29 @@ class MegaStadiumModel extends CI_Model {
 			return array('status' => 200,'message' => 'Contactos obtenidos correctamente', 'response' => $contacts);
 		}
 
+	}
+
+	private function getCourtsJson(){
+		$court1['id'] = 1;
+		$court1['descripcion'] = "5 (1)";
+
+		$court2['id'] = 2;
+		$court2['descripcion'] = "5 (2)";
+
+		$court3['id'] = 3;
+		$court3['descripcion'] = "5 (3)";
+
+		$court4['id'] = 4;
+		$court4['descripcion'] = "7";
+
+		$court5['id'] = 5;
+		$court5['descripcion'] = "8";
+
+		$court6['id'] = 6;
+		$court6['descripcion'] = "9";
+
+		$courts = array($court1, $court2, $court3, $court4, $court5, $court6);
+		return $courts;
 	}
 
 	private function getTimesJson(){
