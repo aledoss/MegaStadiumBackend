@@ -3,13 +3,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class MegaStadiumApi extends CI_Controller {
 
-	public function getTimes($dateInMillis){
+	public function getTimes($dateInMillis, $dayFlag){
 		$method = $_SERVER['REQUEST_METHOD'];
 		if($method != 'GET'){
 			json_output(array('status' => 400,'message' => 'Error de petición.'));
 		} else {
 			$this->load->model('MegaStadiumModel');
-	        $response = $this->MegaStadiumModel->getTimes($dateInMillis);
+	        $response = $this->MegaStadiumModel->getTimes($dateInMillis, $dayFlag);
 
 			json_output($response);
 		}
@@ -27,13 +27,25 @@ class MegaStadiumApi extends CI_Controller {
 		}
 	}
 
-	public function getTableSheetReservations($dateInMillis){
+	public function getTableSheetReservations($dateInMillis, $dayFlag){
 		$method = $_SERVER['REQUEST_METHOD'];
 		if($method != 'GET'){
 			json_output(array('status' => 400,'message' => 'Error de petición.'));
 		} else {
 			$this->load->model('MegaStadiumModel');
-	        $response = $this->MegaStadiumModel->getTableSheetReservations($dateInMillis);
+	        $response = $this->MegaStadiumModel->getTableSheetReservations($dateInMillis, $dayFlag);
+
+			json_output($response);
+		}
+	}
+
+	public function getReservationDetails($reservationId){
+	$method = $_SERVER['REQUEST_METHOD'];
+		if($method != 'GET'){
+			json_output(array('status' => 400,'message' => 'Error de petición.'));
+		} else {
+			$this->load->model('MegaStadiumModel');
+	        $response = $this->MegaStadiumModel->getReservationDetails($reservationId);
 
 			json_output($response);
 		}
