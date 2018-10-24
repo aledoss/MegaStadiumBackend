@@ -2,6 +2,10 @@
 
 class MegaStadiumModel extends CI_Model {
 
+	function __construct(){
+		date_default_timezone_set('America/Argentina/Buenos_Aires');
+	}
+
 	private function isNullOrEmpty($object){
 		return is_null($object) || empty($object);
 	}
@@ -13,6 +17,16 @@ class MegaStadiumModel extends CI_Model {
 
 	private function convertDateToMillis($date){
 		return strtotime($date) * 1000;
+	}
+
+	public function getAllTimes(){
+		$allTimes = $this->db->query("SELECT * from horario")->result_array();
+
+		if(is_null($allTimes) || empty($allTimes)){
+			return array('status' => 404,'message' => 'No se pudieron obtener todos los horarios');
+		}else{
+			return array('status' => 200,'message' => 'Todos los horarios obtenidos correctamente', 'response' => $allTimes);
+		}
 	}
 
 	public function getTimes($dateInMillis, $dayFlag){
@@ -186,20 +200,56 @@ class MegaStadiumModel extends CI_Model {
 				return array('status' => 200,'message' => 'Reserva para el paneo obtenidos correctamente', 'response' => $reservation);
 			}
 		}
-
 	}
 
 	public function getContacts(){
-		//$contacts = $this->db->query("SELECT * from Contacto")->result_array();
-		$contacts = $this->getContactsJson();
+		$contacts = $this->db->query("SELECT * FROM contacto;")->result_array();
+		//$contacts = $this->getContactsJson();
 
 		if(is_null($contacts) || empty($contacts)){
 			return array('status' => 404,'message' => 'No se pudieron obtener los contactos');
 		}else{
 			return array('status' => 200,'message' => 'Contactos obtenidos correctamente', 'response' => $contacts);
 		}
-
 	}
+
+	public function insertReservation($reservation) {
+		$reservation['FechaAlquiler'] = $this->convertMillisToDate($reservation['FechaAlquiler']);
+		$this->db->trans_start();
+		$this->db->insert('ALQUILER', $reservation);
+		if ($this->db->trans_status() === FALSE){
+			$this->db->trans_rollback();
+			return array('status' => 500,'message' => 'No se pudo generar el alquiler');
+		} else {
+			$this->db->trans_commit();
+			return array('status' => 200,'message' => 'Alquiler generada correctamente');
+		}
+	}
+
+	public function updateReservation($reservationId, $reservation){
+		$this->db->trans_start();
+		$this->db->where('Id', $reservationId);
+		$this->db->update('ALQUILER', $reservation);
+		if ($this->db->trans_status() === FALSE){
+			$this->db->trans_rollback();
+			return array('status' => 500,'message' => 'No se pudo actualizar el alquiler');
+		} else {
+			$this->db->trans_commit();
+			return array('status' => 200,'message' => 'Alquiler actualizado correctamente');
+		}
+	}
+
+	public function cancelReservation($reservationId) {
+		$result = $this->db->delete('ALQUILER', array('Id' => $reservationId));
+		
+		if(is_null($result) || empty($result)){
+			return array('status' => 404,'message' => 'No se cancelar el alquiler');
+		}else{
+			return array('status' => 200,'message' => 'Alquiler cancelado correctamente');
+		}
+	}
+
+	// MOCKS
 
 	private function getCourtsJson(){
 		$court1['id'] = 1;

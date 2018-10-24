@@ -3,6 +3,23 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class MegaStadiumApi extends CI_Controller {
 
+	private function getActualDateTime(){
+		date_default_timezone_set('America/Argentina/Buenos_Aires');
+		return date('Y-m-d H:i:s'); 
+	}
+
+	public function getAllTimes(){
+		$method = $_SERVER['REQUEST_METHOD'];
+		if($method != 'GET'){
+			json_output(array('status' => 400,'message' => 'Error de petición.'));
+		} else {
+			$this->load->model('MegaStadiumModel');
+	        $response = $this->MegaStadiumModel->getAllTimes();
+
+			json_output($response);
+		}
+	}
+
 	public function getTimes($dateInMillis, $dayFlag){
 		$method = $_SERVER['REQUEST_METHOD'];
 		if($method != 'GET'){
@@ -58,6 +75,76 @@ class MegaStadiumApi extends CI_Controller {
 		} else {
 			$this->load->model('MegaStadiumModel');
 	        $response = $this->MegaStadiumModel->getContacts();
+
+			json_output($response);
+		}
+	}
+
+	public function insertReservation() {
+		$method = $_SERVER['REQUEST_METHOD'];
+		if($method != 'POST'){
+			json_output(array('status' => 400,'message' => 'Error de petición.'));
+		} else {
+			$stream_clean = $this->security->xss_clean($this->input->raw_input_stream);
+			$body = json_decode($stream_clean,true);
+
+			$reservation = array(
+				'Sena' => $body['Sena'],
+				'FechaAlquiler' => $body['FechaAlquiler'],
+				'AlquilaSinSena' => $body['AlquilaSinSena'],
+				'Adicional' => $body['Adicional'],
+				'PagadoCliente' => $body['PagadoCliente'],
+				'Nota' => $body['Nota'],
+				'FechaCreacion' => $this->getActualDateTime(),
+				'FechaModificacion' => $this->getActualDateTime(),
+				'IdContacto1' => $body['contacto1']['Id'],
+				'IdContacto2' => $body['contacto2']['Id'],
+				'IdTipoCancha' => $body['tipoCancha']['Id'],
+				'IdHorario' => $body['horario']['Id'],
+				'IdEstado' => $body['estado']['Id']
+			);
+
+			$this->load->model('MegaStadiumModel');
+			$response = $this->MegaStadiumModel->insertReservation($reservation);
+
+			json_output($response);
+		}
+	}
+
+	public function updateReservation($reservationId){
+		$method = $_SERVER['REQUEST_METHOD'];
+		if($method != 'POST'){
+			json_output(array('status' => 400,'message' => 'Error de petición.'));
+		} else {
+			$stream_clean = $this->security->xss_clean($this->input->raw_input_stream);
+			$body = json_decode($stream_clean,true);
+
+			$reservation = array(
+				'Sena' => $body['Sena'],
+				'AlquilaSinSena' => $body['AlquilaSinSena'],
+				'Adicional' => $body['Adicional'],
+				'PagadoCliente' => $body['PagadoCliente'],
+				'Nota' => $body['Nota'],
+				'FechaModificacion' => $this->getActualDateTime(),
+				'IdContacto1' => $body['contacto1']['Id'],
+				'IdContacto2' => $body['contacto2']['Id'],
+				'IdEstado' => $body['estado']['Id']
+			);
+
+			$this->load->model('MegaStadiumModel');
+			$response = $this->MegaStadiumModel->updateReservation($reservationId, $reservation);
+
+			json_output($response);
+		}
+	}
+
+	public function cancelReservation($reservationId) {
+		$method = $_SERVER['REQUEST_METHOD'];
+		if($method != 'GET'){
+			json_output(array('status' => 400,'message' => 'Error de petición.'));
+		} else {
+			$this->load->model('MegaStadiumModel');
+	        $response = $this->MegaStadiumModel->cancelReservation($reservationId);
 
 			json_output($response);
 		}
