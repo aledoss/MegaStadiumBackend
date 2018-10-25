@@ -75,7 +75,7 @@ class MegaStadiumModel extends CI_Model {
 		for ($i = 0; $i < sizeof($courts); $i++){
 			$reservations[$i] = $this->getTableSheetReservationForCourt($date, $dayFlag, $courts[$i]["Id"]);
 		}
-		
+
 		//$reservations = $this->getReservationsJson();
 
 		if(is_null($reservations) || empty($reservations)){
@@ -88,39 +88,45 @@ class MegaStadiumModel extends CI_Model {
 	private function getTableSheetReservationForCourt($date, $dayFlag, $courtId){
 		$courtReservation = $this->db->query("
 			SELECT A.IdHorario,
-				   H.Descripcion DescHorario, 
-			       A.Id IdAlquiler,
-			       A.IdContacto1,
-			       C1.Nombre NombreContacto1,
-			       C1.Codigo CodigoContacto1,
-			       A.IdContacto2,
-			       C2.Nombre NombreContacto2,
-			       C2.Codigo CodigoContacto2,
-			       IFNULL(E.DESCRIPCION, 'Vacio') DescEstado,
-			       IFNULL(E.COLOR, '#FFFFFF') ColorEstado,
-			       TC.Descripcion
-		  	FROM HORARIO H
-				LEFT JOIN ALQUILER A
-					ON H.Id = A.IdHorario
-			        AND A.IDTIPOCANCHA = $courtId
-			        AND A.FECHAALQUILER = '$date'
-				LEFT JOIN ESTADO E
-					ON A.IDESTADO = E.ID
-				LEFT JOIN CONTACTO C1
-					ON C1.Id = A.IdContacto1
-				LEFT JOIN CONTACTO C2
-					ON C2.Id = A.IdContacto2
-				LEFT JOIN TipoCancha TC
-					ON TC.id = $courtId
+			   H.Descripcion DescHorario, 
+			   A.Id IdAlquiler,
+			   A.IdContacto1,
+			   C1.Nombre NombreContacto1,
+			   C1.Codigo CodigoContacto1,
+			   A.IdContacto2,
+			   C2.Nombre NombreContacto2,
+			   C2.Codigo CodigoContacto2,
+			   IFNULL(E.DESCRIPCION, 'Vacio') DescEstado,
+			   IFNULL(E.COLOR, '#FFFFFF') ColorEstado,
+					       TC.Descripcion
+			FROM HORARIO H
+			LEFT JOIN ALQUILER A
+				ON H.Id = A.IdHorario
+			    AND A.IDTIPOCANCHA = $courtId
+			    AND A.FECHAALQUILER = '$date'
+			LEFT JOIN ESTADO E
+				ON A.IDESTADO = E.ID
+			LEFT JOIN CONTACTO C1
+				ON C1.Id = A.IdContacto1
+			LEFT JOIN CONTACTO C2
+				ON C2.Id = A.IdContacto2
+			LEFT JOIN TipoCancha TC
+							ON TC.id = $courtId
 			WHERE  (
-					 (
-					   (A.ID IS NULL AND '$dayFlag' = 'FS' AND H.DESTACADOFS = TRUE)
-						 OR 
-					   (A.ID IS NULL AND '$dayFlag' = 'S' AND H.DESTACADO = TRUE)
-					 )
-					   OR 
-					 (A.ID IS NOT NULL)
-				   )
+				 (
+				   (A.ID IS NULL AND '$dayFlag' = 'FS' AND H.DESTACADOFS = TRUE)
+					 OR 
+				   (A.ID IS NULL AND '$dayFlag' = 'S' AND H.DESTACADO = TRUE)
+				 )
+				   OR 
+				 (A.ID IS NOT NULL)
+			       OR
+				 (A.ID IS NULL AND EXISTS (SELECT 1
+										     FROM Alquiler a2
+			                                WHERE a2.FECHAALQUILER = '$date'
+			                                  AND a2.idHorario = H.id)
+				 ) 
+			   )
 			ORDER BY H.ID ASC
 		")->result_array();
 
