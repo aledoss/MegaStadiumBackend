@@ -254,6 +254,16 @@ class MegaStadiumModel extends CI_Model {
 		}
 	}
 
+	public function copyReservation($reservationId) {
+		$couldCopy = $this->db->query("CALL sp_CopiarReserva($reservationId)");
+		
+		if(!$couldCopy){
+			return array('status' => 404,'message' => 'No se generar el alquiler');
+		}else{
+			return array('status' => 200,'message' => 'Alquiler generado correctamente');
+		}
+	}
+
 	// MOCKS
 
 	private function getCourtsJson(){
