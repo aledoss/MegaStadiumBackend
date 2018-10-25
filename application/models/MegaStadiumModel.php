@@ -69,15 +69,14 @@ class MegaStadiumModel extends CI_Model {
 
 	public function getTableSheetReservations($dateInMillis, $dayFlag){
 		$date = $this->convertMillisToDate($dateInMillis);
-		$court1 = $this->getTableSheetReservationForCourt($date, $dayFlag, 1);
-		$court2 = $this->getTableSheetReservationForCourt($date, $dayFlag, 2);
-		$court3 = $this->getTableSheetReservationForCourt($date, $dayFlag, 3);
-		$court4 = $this->getTableSheetReservationForCourt($date, $dayFlag, 4);
-		$court5 = $this->getTableSheetReservationForCourt($date, $dayFlag, 5);
-		$court6 = $this->getTableSheetReservationForCourt($date, $dayFlag, 6);
+		$courts = $this->db->query("SELECT * from TipoCancha")->result_array();
+		$reservations = array();
+
+		for ($i = 0; $i < sizeof($courts); $i++){
+			$reservations[$i] = $this->getTableSheetReservationForCourt($date, $dayFlag, $courts[$i]["Id"]);
+		}
 		
 		//$reservations = $this->getReservationsJson();
-		$reservations = array($court1, $court2, $court3, $court4, $court5, $court6);
 
 		if(is_null($reservations) || empty($reservations)){
 			return array('status' => 404,'message' => 'No se pudieron obtener las reservas para el paneo');
