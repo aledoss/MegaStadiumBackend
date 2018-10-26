@@ -264,6 +264,16 @@ class MegaStadiumModel extends CI_Model {
 		}
 	}
 
+	public function getStates() {
+		$result = $this->db->query("SELECT * FROM Estado")->result_array();
+		
+		if(is_null($result) || empty($result)) {
+			return array('status' => 404,'message' => 'No se pudieron obtener los estados');
+		}else{
+			return array('status' => 200,'message' => 'Estados obtenidos correctamente', 'response' => $result);
+		}
+	}
+
 	// MOCKS
 
 	private function getCourtsJson(){

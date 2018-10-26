@@ -166,6 +166,18 @@ class MegaStadiumApi extends CI_Controller {
 
 	}
 
+	public function getStates() {
+		$method = $_SERVER['REQUEST_METHOD'];
+		if($method != 'GET'){
+			json_output(array('status' => 400,'message' => 'Error de petición.'));
+		} else {
+			$this->load->model('MegaStadiumModel');
+	        $response = $this->MegaStadiumModel->getStates();
+
+			json_output($response);
+		}
+	}
+
 	private function getBody(){
 		$stream_clean = $this->security->xss_clean($this->input->raw_input_stream);
 		return json_decode($stream_clean,true);
