@@ -162,6 +162,18 @@ class MegaStadiumApi extends CI_Controller {
 		}
 	}
 
+	public function getAvailableTimesForDateAndCourts($courtId, $date, $dayFlag) {
+		$method = $_SERVER['REQUEST_METHOD'];
+		if($method != 'GET'){
+			json_output(array('status' => 400,'message' => 'Error de petición.'));
+		} else {
+			$this->load->model('MegaStadiumModel');
+	        $response = $this->MegaStadiumModel->getAvailableTimesForDateAndCourts($courtId, $date, $dayFlag);
+
+			json_output($response);
+		}
+	}
+
 	public function updateContacts(){
 
 	}

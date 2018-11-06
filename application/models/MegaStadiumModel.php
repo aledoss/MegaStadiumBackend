@@ -166,6 +166,7 @@ class MegaStadiumModel extends CI_Model {
 			return array('status' => 404,'message' => 'No se pudo obtener la reserva');
 		} else {
 			$reservation->FechaAlquiler = $this->convertDateToMillis($reservation->FechaAlquiler);
+			$reservation->FechaCreacion = $this->convertDateToMillis($reservation->FechaCreacion);
 			$contact1Id = $reservation->IdContacto1;
 			$contact2Id = $reservation->IdContacto2;
 			$courtId = $reservation->IdTipoCancha;
@@ -261,6 +262,48 @@ class MegaStadiumModel extends CI_Model {
 			return array('status' => 404,'message' => 'No se generar el alquiler');
 		}else{
 			return array('status' => 200,'message' => 'Alquiler generado correctamente');
+		}
+	}
+
+	public function getAvailableTimesForDateAndCourts($courtId, $date, $dayFlag) {
+		$formattedDate = $this->convertMillisToDate($date);
+		$times = $this->db->query("
+			SELECT H.Id Id,
+			   H.Descripcion Descripcion
+			FROM HORARIO H
+			LEFT JOIN ALQUILER A
+				ON H.Id = A.IdHorario
+			    AND A.IDTIPOCANCHA = $courtId
+			    AND A.FECHAALQUILER = '$formattedDate'
+			LEFT JOIN ESTADO E
+				ON A.IDESTADO = E.ID
+			LEFT JOIN CONTACTO C1
+				ON C1.Id = A.IdContacto1
+			LEFT JOIN CONTACTO C2
+				ON C2.Id = A.IdContacto2
+			WHERE  (
+				 (
+				   (A.ID IS NULL AND '$dayFlag' = 'FS' AND H.DESTACADOFS = TRUE)
+					 OR 
+				   (A.ID IS NULL AND '$dayFlag' = 'S' AND H.DESTACADO = TRUE)
+				 )
+				   OR 
+				 /*(A.ID IS NOT NULL)
+			       OR*/
+				 (A.ID IS NULL AND EXISTS (SELECT 1
+										     FROM Alquiler a2
+			                                WHERE a2.FECHAALQUILER = '$formattedDate'
+			                                  AND a2.idHorario = H.id)
+				 ) 
+			   )
+			ORDER BY H.ID ASC
+
+		")->result_array();
+
+		if(is_null($times) || empty($times)){
+			return array('status' => 404,'message' => "No se pudieron obtener los horarios para la cancha $courtId para la fecha $formattedDate");
+		}else{
+			return array('status' => 200,'message' => "Horarios para la cancha $courtId para la fecha $formattedDate obtenidos correctamente", 'response' => $times);
 		}
 	}
 
