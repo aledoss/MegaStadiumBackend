@@ -128,7 +128,8 @@ class MegaStadiumApi extends CI_Controller {
 				'FechaModificacion' => $this->getActualDateTime(),
 				'IdContacto1' => $body['contacto1']['Id'],
 				'IdContacto2' => $body['contacto2']['Id'],
-				'IdEstado' => $body['estado']['Id']
+				'IdEstado' => $body['estado']['Id'],
+				'IdHorario' => $body['horario']['Id']
 			);
 
 			$this->load->model('MegaStadiumModel');
@@ -188,6 +189,10 @@ class MegaStadiumApi extends CI_Controller {
 
 			json_output($response);
 		}
+	}
+
+	public function pingServer(){
+		//Nothing to do
 	}
 
 	private function getBody(){
