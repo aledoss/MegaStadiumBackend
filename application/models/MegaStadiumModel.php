@@ -19,6 +19,11 @@ class MegaStadiumModel extends CI_Model {
 		return strtotime($date) * 1000;
 	}
 
+	private function getActualDateTime(){
+		date_default_timezone_set('America/Argentina/Buenos_Aires');
+		return date('Y-m-d H:i:s'); 
+	}
+
 	public function getAllTimes(){
 		$allTimes = $this->db->query("SELECT * from horario")->result_array();
 
@@ -314,6 +319,67 @@ class MegaStadiumModel extends CI_Model {
 		}else{
 			return array('status' => 200,'message' => 'Estados obtenidos correctamente', 'response' => $result);
 		}
+	}
+
+	public function insertContacts($contacts) {
+		for ($i = 0; $i < sizeof($contacts); $i++) {
+			$nombre = $contacts[$i]['Nombre'];
+			$telefono = $contacts[$i]['Telefono'];
+			$mail = $contacts[$i]['Mail'];
+			$facebook = $contacts[$i]['Facebook'];
+
+			if (substr($telefono, 1, 3) == "+54"){
+				$telNormalizado = sbstr($telefono, 4);
+			} else {
+				$telNormalizado = "+54" . $telefono;
+			}
+			$count = $this->db->query("SELECT COUNT(*) as cant FROM contacto c WHERE c.Telefono = '$telefono' OR c.Telefono = '$telNormalizado'")->row();
+			if ($count->cant > 0){
+				$contact = $this->db->query("SELECT c.Nombre, c.Mail, c.Facebook FROM contacto c WHERE c.Telefono = '$telefono' OR c.Telefono = '$telNormalizado'")->row();
+				if (is_null($contact->Mail)){
+					$contact->Mail = "";
+				}
+				if (is_null($contact->Facebook)){
+					$contact->Facebook = "";
+				}
+				if ($contact->Nombre == $nombre && $mail == $contact->Mail && $facebook == $contact->Facebook) {
+				} else {
+					$nombresDuplicados[]['NombreDuplicado'] = $nombre . " (" . $contact->Nombre . ")";
+				}
+			} else {
+				$contacts[$i]['FechaCreacion'] = $this->getActualDateTime();
+				$contacts[$i]['FechaModificacion'] = $this->getActualDateTime();
+				$this->db->insert('contacto', $contacts[$i]);
+			}
+		}
+		if (!isset($nombresDuplicados)){
+			$nombresDuplicados = array();
+		}
+
+		return array('status' => 200,'message' => 'Contactos insertados', 'response' => $nombresDuplicados);
+	}
+
+	public function updateContacts($contacts) {
+		for ($i = 0; $i < sizeof($contacts); $i++) {
+			$nombre = $contacts[$i]['Nombre'];
+			$telefono = $contacts[$i]['Telefono'];
+			$mail = $contacts[$i]['Mail'];
+			$facebook = $contacts[$i]['Facebook'];
+			
+			if (substr($telefono, 1, 3) == "+54") {
+				$telNormalizado = substr($telefono, 4);
+			} else {
+				$telNormalizado = "+54" . $telefono;
+			}
+
+			$count = $this->db->query("SELECT COUNT(*) as cant FROM contacto c WHERE c.Telefono = '$telefono' OR c.Telefono = '$telNormalizado'")->row();
+			if ($count->cant > 0) {
+				$actualDateTime = $this->getActualDateTime();
+				$this->db->query("UPDATE contacto SET Nombre = '$nombre', Mail = '$mail', Facebook = '$facebook', FechaModificacion = '$actualDateTime' WHERE Telefono = '$telefono' OR Telefono = '$telNormalizado'");
+			}
+		}
+
+		return array('status' => 200,'message' => 'Contactos actualizados', 'response' => true);
 	}
 
 }

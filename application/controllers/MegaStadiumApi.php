@@ -175,8 +175,34 @@ class MegaStadiumApi extends CI_Controller {
 		}
 	}
 
-	public function updateContacts(){
+	public function insertContacts(){
+		$method = $_SERVER['REQUEST_METHOD'];
+		if($method != 'POST'){
+			json_output(array('status' => 400,'message' => 'Error de petición.'));
+		} else {
+			$stream_clean = $this->security->xss_clean($this->input->raw_input_stream);
+			$body = json_decode($stream_clean,true);
 
+			$this->load->model('MegaStadiumModel');
+			$response = $this->MegaStadiumModel->insertContacts($body);
+
+			json_output($response);
+		}
+	}
+
+	public function updateContacts(){
+		$method = $_SERVER['REQUEST_METHOD'];
+		if($method != 'POST'){
+			json_output(array('status' => 400,'message' => 'Error de petición.'));
+		} else {
+			$stream_clean = $this->security->xss_clean($this->input->raw_input_stream);
+			$body = json_decode($stream_clean,true);
+
+			$this->load->model('MegaStadiumModel');
+			$response = $this->MegaStadiumModel->updateContacts($body);
+
+			json_output($response);
+		}
 	}
 
 	public function getStates() {
