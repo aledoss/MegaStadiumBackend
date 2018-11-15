@@ -214,9 +214,9 @@ class MegaStadiumModel extends CI_Model {
 	}
 
 	public function getContacts(){
-		$contacts = $this->db->query("SELECT * FROM contacto;")->result_array();
+		$contacts = $this->db->query("SELECT * FROM contacto ORDER BY Nombre;")->result_array();
 
-		if(is_null($contacts) || empty($contacts)){
+		if(is_null($contacts)){
 			return array('status' => 404,'message' => 'No se pudieron obtener los contactos');
 		}else{
 			return array('status' => 200,'message' => 'Contactos obtenidos correctamente', 'response' => $contacts);
@@ -381,6 +381,69 @@ class MegaStadiumModel extends CI_Model {
 
 		return array('status' => 200,'message' => 'Contactos actualizados', 'response' => true);
 	}
+
+	public function verifyContact($contact) {
+		$telefono = $contact["Telefono"];
+
+		if ($this->isNullOrEmpty($telefono)) {
+			return array('status' => 500,'message' => 'El contacto no posee teléfono');
+		} else {
+			if (substr($telefono, 1, 3) == "+54") {
+				$telNormalizado = substr($telefono, 4);
+			} else {
+				$telNormalizado = "+54" . $telefono;
+			}
+
+			$contactFromServer = $this->db->query("SELECT * FROM contacto c WHERE c.Telefono = '$telefono' OR c.Telefono = 'telNormalizado'")->row();
+			
+			if ($this->isNullOrEmpty($contactFromServer)){
+				$contact['FechaCreacion'] = $this->getActualDateTime();
+				$contact['FechaModificacion'] = $this->getActualDateTime();
+				$this->db->insert('contacto', $contact);
+				$contactId = $this->db->insert_id();
+				$contactToReturn['contact'] = $this->db->query("SELECT * FROM contacto c WHERE c.Id = $contactId")->row();
+				
+				return array('status' => 200,'message' => 'Contacto insertado', 'response' => $contactToReturn);
+			} else {
+				$contactToReturn['contact'] = $contactFromServer;
+				if ($contact['Nombre'] == $contactFromServer->Nombre){
+					$contactToReturn['duplicated'] = false;
+					return array('status' => 200,'message' => 'Contacto correcto', 'response' => $contactToReturn);
+				} else {
+					$contactToReturn['duplicated'] = true;
+					return array('status' => 200,'message' => 'Contacto duplicado', 'response' => $contactToReturn);
+				}
+			}
+		}
+	}
+
+	public function updateContact($oldContactId, $contact) {
+		$this->db->trans_start();
+		$this->db->where('Id', $oldContactId);
+		$this->db->update('contacto', $contact);
+		if ($this->db->trans_status() === FALSE){
+			$this->db->trans_rollback();
+			return array('status' => 500,'message' => 'No se pudo actualizar el contacto');
+		} else {
+			$this->db->trans_commit();
+			$updatedContact = $this->db->query("SELECT * FROM contacto c WHERE c.Id = $oldContactId")->row();
+			return array('status' => 200,'message' => 'Contacto actualizado correctamente', 'response' => $updatedContact);
+		}
+	}
+
+	/*
+	public function insertReservation($reservation) {
+		$reservation['FechaAlquiler'] = $this->convertMillisToDate($reservation['FechaAlquiler']);
+		$this->db->trans_start();
+		$this->db->insert('ALQUILER', $reservation);
+		if ($this->db->trans_status() === FALSE){
+			$this->db->trans_rollback();
+			return array('status' => 500,'message' => 'No se pudo generar el alquiler');
+		} else {
+			$this->db->trans_commit();
+			return array('status' => 200,'message' => 'Alquiler generada correctamente');
+		}
+	}*/
 
 }
 ?>	

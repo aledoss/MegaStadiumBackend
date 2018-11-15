@@ -217,6 +217,36 @@ class MegaStadiumApi extends CI_Controller {
 		}
 	}
 
+	public function verifyContact() {
+		$method = $_SERVER['REQUEST_METHOD'];
+		if($method != 'POST'){
+			json_output(array('status' => 400,'message' => 'Error de petición.'));
+		} else {
+			$stream_clean = $this->security->xss_clean($this->input->raw_input_stream);
+			$body = json_decode($stream_clean,true);
+
+			$this->load->model('MegaStadiumModel');
+			$response = $this->MegaStadiumModel->verifyContact($body);
+
+			json_output($response);
+		}
+	}
+
+	public function updateContact($oldContactId) {
+		$method = $_SERVER['REQUEST_METHOD'];
+		if($method != 'POST'){
+			json_output(array('status' => 400,'message' => 'Error de petición.'));
+		} else {
+			$stream_clean = $this->security->xss_clean($this->input->raw_input_stream);
+			$body = json_decode($stream_clean,true);
+
+			$this->load->model('MegaStadiumModel');
+			$response = $this->MegaStadiumModel->updateContact($oldContactId, $body);
+
+			json_output($response);
+		}
+	}
+
 	public function pingServer(){
 		//Nothing to do
 	}
