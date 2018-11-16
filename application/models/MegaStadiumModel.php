@@ -179,7 +179,7 @@ class MegaStadiumModel extends CI_Model {
 			$stateId = $reservation->IdEstado;
 
 			if (!$this->isNullOrEmpty($contact1Id)){
-				$contact1 = $this->db->query("SELECT * FROM contacto C WHERE C.id = $contact1Id;")->row();
+				$contact1 = $this->db->query("SELECT * FROM contacto C WHERE C.Id = $contact1Id;")->row();
 			}
 			if (!$this->isNullOrEmpty($contact2Id)){
 				$contact2 = $this->db->query("SELECT * FROM contacto C WHERE C.id = $contact2Id;")->row();
@@ -425,25 +425,11 @@ class MegaStadiumModel extends CI_Model {
 			$this->db->trans_rollback();
 			return array('status' => 500,'message' => 'No se pudo actualizar el contacto');
 		} else {
-			$this->db->trans_commit();
 			$updatedContact = $this->db->query("SELECT * FROM contacto c WHERE c.Id = $oldContactId")->row();
+			$this->db->trans_commit();
 			return array('status' => 200,'message' => 'Contacto actualizado correctamente', 'response' => $updatedContact);
 		}
 	}
-
-	/*
-	public function insertReservation($reservation) {
-		$reservation['FechaAlquiler'] = $this->convertMillisToDate($reservation['FechaAlquiler']);
-		$this->db->trans_start();
-		$this->db->insert('ALQUILER', $reservation);
-		if ($this->db->trans_status() === FALSE){
-			$this->db->trans_rollback();
-			return array('status' => 500,'message' => 'No se pudo generar el alquiler');
-		} else {
-			$this->db->trans_commit();
-			return array('status' => 200,'message' => 'Alquiler generada correctamente');
-		}
-	}*/
 
 }
 ?>	
